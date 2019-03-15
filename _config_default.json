@@ -1,0 +1,35 @@
+{
+  "server_id": "ARB2-PROD-TEST",
+  "script_id": "triarb_production",
+  "exchange_id":"binance",
+
+  "commission" : 0.00075,
+
+  "api_key": {"apiKey": "",
+           "secret": ""},
+
+  "influxdb":
+          {
+            "enabled": false,
+            "host": "localhost",
+            "port": 8086,
+            "db": "tkg_dev",
+            "measurement": "tri_deals_results"},
+
+   "sqla":
+      {
+      "enabled": false,
+      "connection_string": "postgres://ztom_main:ztom@localserver:5432/ztom_dev"
+      },
+
+  "taker_price_threshold": -0.01,
+  "order_update_total_requests": 10,
+  "order_update_requests_for_time_out": 12,
+  "order_update_time_out": 1,
+  "max_trades_updates": 4,
+  "max_oder_books_fetch_attempts": 10,
+  "max_order_update_attempts":5,
+  "request_sleep": 0.05,
+  "om_proceed_sleep" : 0.01
+
+}
