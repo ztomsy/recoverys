@@ -13,6 +13,9 @@ Bot.recovery_server = ""
 Bot.taker_price_threshold = 0.0
 
 bot = Bot("_config_default.json", "server.log")
+bot.maker_stop_loss = dict()
+
+
 bot.load_config_from_file(bot.config_filename)
 
 bot.log(bot.LOG_INFO, "Starting test...")

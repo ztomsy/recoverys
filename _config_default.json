@@ -30,6 +30,15 @@
   "max_oder_books_fetch_attempts": 10,
   "max_order_update_attempts":5,
   "request_sleep": 0.05,
-  "om_proceed_sleep" : 0.01
+  "om_proceed_sleep" : 0.01,
+  "maker_stop_loss":
+    {
+       "maker_price_threshold": -0.005,
+       "maker_order_max_updates": 50,
+       "force_taker_updates": 500,
+       "taker_price_threshold": -0.01,
+       "taker_order_max_updates": 10,
+       "threshold_check_after_updates":5
+    }
 
 }
