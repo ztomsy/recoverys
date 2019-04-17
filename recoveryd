@@ -7,7 +7,7 @@ import cli
 from typing import List
 import time
 import tkgpro
-from tkgpro import ThresholdRecoveryOrder
+from tkgpro import ThresholdRecoveryOrder, MakerStopLossOrder
 import pytz
 
 
@@ -32,13 +32,37 @@ def set_order(handler):
     best_dest_amount = float(payload["best_dest_amount"])
     taker_price_threshold = bot.taker_price_threshold
 
+    maker_price_threshold = bot.maker_stop_loss["maker_price_threshold"]
+    maker_order_max_updates = bot.maker_stop_loss["maker_order_max_updates"]
+
+    force_taker_updates = bot.maker_stop_loss["force_taker_updates"]
+    taker_price_threshold = bot.maker_stop_loss["taker_price_threshold"]
+    taker_order_max_updates = bot.maker_stop_loss["taker_order_max_updates"]
+    threshold_check_after_updates = bot.maker_stop_loss["threshold_check_after_updates"]
+
     cancel_threshold = om.exchange.markets[symbol]["limits"]["amount"]["min"]*1.01
 
-    recovery_order = ThresholdRecoveryOrder(symbol, start_currency, start_amount, dest_currency,
-                                            best_dest_amount, taker_price_threshold=taker_price_threshold,
-                                            cancel_threshold=cancel_threshold,
-                                            max_best_amount_order_updates=bot.order_update_total_requests,
-                                            max_order_updates=bot.max_order_update_attempts)
+    # recovery_order = ThresholdRecoveryOrder(symbol, start_currency, start_amount, dest_currency,
+    #                                         best_dest_amount, taker_price_threshold=taker_price_threshold,
+    #                                         cancel_threshold=cancel_threshold,
+    #                                         max_best_amount_order_updates=bot.order_update_total_requests,
+    #                                         max_order_updates=bot.max_order_update_attempts)
+
+    recovery_order = MakerStopLossOrder.create_from_start_amount(
+        symbol=symbol,
+        start_currency=start_currency,
+        start_amount=start_amount,
+        dest_currency=dest_currency,
+        target_amount=best_dest_amount,
+        cancel_threshold=cancel_threshold,
+        maker_price_threshold=maker_price_threshold,
+        maker_order_max_updates=maker_order_max_updates,
+        force_taker_updates=force_taker_updates,
+        taker_price_threshold=taker_price_threshold,
+        taker_order_max_updates=taker_order_max_updates,
+        threshold_check_after_updates=threshold_check_after_updates
+    )
+
     om.add_order(recovery_order)
 
     # adding data for report associated with order
@@ -70,7 +94,8 @@ def report_closed_orders(tribot: Bot, order_manager: ActionOrderManager, closed_
         report_data["om-server"] = "Recover1"
         report_data["cur1"] = order.dest_currency
         report_data["state"] = order.state
-        report_data["target_amount"] = order.best_dest_amount
+        # report_data["target_amount"] = order.best_dest_amount
+        report_data["target_amount"] = order.dest_amount
         report_data["filled_amount"] = order.filled_dest_amount
         report_data["order_type"] = str(type(order))
         report_data["tags"] = " ".join(order.tags) if len(order.tags) > 0 else None
@@ -200,6 +225,19 @@ def worker():
 
 Bot.recovery_server = ""
 bot = Bot("", "server.log")
+
+bot.maker_stop_loss = dict()
+"""
+   params for  MakerStopLossOrder
+   maker_price_threshold: float = 0.005,
+   maker_order_max_updates: int = 50,
+   force_taker_updates: int = 500,
+   taker_price_threshold: float = -0.01,
+   taker_order_max_updates: int = 10,
+   threshold_check_after_updates: int = 5
+
+"""
+
 bot.get_cli_parameters = cli.get_cli_parameters
 bot.set_from_cli(sys.argv[1:])
 
