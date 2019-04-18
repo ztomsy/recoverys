@@ -71,7 +71,7 @@ def set_order(handler):
     return "ok"
 
 
-def report_closed_orders(tribot: Bot, order_manager: ActionOrderManager, closed_orders: List[ThresholdRecoveryOrder]):
+def report_closed_orders(tribot: Bot, order_manager: ActionOrderManager, closed_orders: List[ActionOrder]):
 
     tribot.log(tribot.LOG_INFO, "Reporting closed orders....")
 
@@ -93,8 +93,12 @@ def report_closed_orders(tribot: Bot, order_manager: ActionOrderManager, closed_
         report_data["exchange-id"] = tribot.exchange_id
         report_data["om-server"] = "Recover1"
         report_data["cur1"] = order.dest_currency
+        report_data["dest_currency"] = order.dest_currency
+        report_data["start_currency"] = order.start_currency
+        report_data["target_price"] = order.price
         report_data["state"] = order.state
         # report_data["target_amount"] = order.best_dest_amount
+        report_data["start_amount"] = order.start_amount
         report_data["target_amount"] = order.dest_amount
         report_data["filled_amount"] = order.filled_dest_amount
         report_data["order_type"] = str(type(order))
