@@ -1,6 +1,6 @@
 import sys
-import tkgcore
-from tkgcore import *
+import ztom
+from ztom import *
 import urllib.parse
 import copy
 import cli
@@ -8,6 +8,8 @@ from typing import List
 import time
 import tkgpro
 from tkgpro import ThresholdRecoveryOrder, MakerStopLossOrder
+import tkgtri
+from tkgtri import rest_server
 import pytz
 
 
