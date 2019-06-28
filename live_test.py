@@ -1,6 +1,8 @@
-import tkgcore as tkg
-from tkgcore import Bot
-from tkgcore.trade_order_manager import *
+import ztom as zt
+from ztom import Bot
+import tkgtri
+from tkgtri import rest_server
+from ztom.trade_order_manager import *
 import sys
 
 start_cur = "ETH"
@@ -13,6 +15,9 @@ Bot.recovery_server = ""
 Bot.taker_price_threshold = 0.0
 
 bot = Bot("_config_default.json", "server.log")
+bot.maker_stop_loss = dict()
+
+
 bot.load_config_from_file(bot.config_filename)
 
 bot.log(bot.LOG_INFO, "Starting test...")
@@ -31,25 +36,25 @@ bot.load_markets()
 if bot.offline:
     bot.fetch_tickers()  # for getting data for order books
 
-symbol = tkg.core.get_symbol(start_cur, dest_cur, bot.markets)
+symbol = zt.core.get_symbol(start_cur, dest_cur, bot.markets)
 
-tkg.ActionOrderManager.log = bot.log  # override order manager logger to the bot logger
-tkg.ActionOrderManager.LOG_INFO = bot.LOG_INFO
-tkg.ActionOrderManager.LOG_ERROR = bot.LOG_ERROR
-tkg.ActionOrderManager.LOG_DEBUG = bot.LOG_DEBUG
-tkg.ActionOrderManager.LOG_CRITICAL = bot.LOG_CRITICAL
+zt.ActionOrderManager.log = bot.log  # override order manager logger to the bot logger
+zt.ActionOrderManager.LOG_INFO = bot.LOG_INFO
+zt.ActionOrderManager.LOG_ERROR = bot.LOG_ERROR
+zt.ActionOrderManager.LOG_DEBUG = bot.LOG_DEBUG
+zt.ActionOrderManager.LOG_CRITICAL = bot.LOG_CRITICAL
 
 ob_array = bot.exchange.fetch_order_book(symbol, 100)
-ob = tkg.OrderBook(symbol, ob_array["asks"], ob_array["bids"])
+ob = zt.OrderBook(symbol, ob_array["asks"], ob_array["bids"])
 
 price = ob.get_depth_for_destination_currency(start_amount, dest_cur).total_price
-order1 = tkg.ActionOrder.create_from_start_amount(symbol, start_cur, start_amount, dest_cur, price)
+order1 = zt.ActionOrder.create_from_start_amount(symbol, start_cur, start_amount, dest_cur, price)
 
 bot.log(bot.LOG_INFO, "From {} -{}-> {}".format(order1.start_currency, order1.side, order1.dest_currency))
 bot.log(bot.LOG_INFO, "Price: {}".format(price))
 
 
-om = tkg.ActionOrderManager(bot.exchange)
+om = zt.ActionOrderManager(bot.exchange)
 om.request_trades = False
 om.add_order(order1)
 
@@ -77,6 +82,6 @@ payload = {'start_cur': dest_cur,
            'dest_cur': start_cur,
            'symbol': symbol}
 
-result = tkg.rest_server.rest_call_json("http://localhost:8080/order/", payload, "PUT")
+result = rest_server.rest_call_json("http://localhost:8080/order/", payload, "PUT")
 bot.log(bot.LOG_INFO, "Result of request: {}".format(result))
 
