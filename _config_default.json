@@ -18,8 +18,8 @@
 
    "sqla":
       {
-      "enabled": false,
-      "connection_string": "postgres://ztom_main:ztom@localserver:5432/ztom_dev"
+      "enabled": true,
+      "connection_string": "postgres://postgres:12345@localhost:5432/ztom"
       },
 
   "taker_price_threshold": -0.01,

@@ -42,7 +42,7 @@ def set_order(handler):
     taker_order_max_updates = bot.maker_stop_loss["taker_order_max_updates"]
     threshold_check_after_updates = bot.maker_stop_loss["threshold_check_after_updates"]
 
-    cancel_threshold = om.exchange.markets[symbol]["limits"]["amount"]["min"]*1.01
+    cancel_threshold = om.exchange.markets[symbol]["limits"]["amount"]["min"] * 1.01
 
     # recovery_order = ThresholdRecoveryOrder(symbol, start_currency, start_amount, dest_currency,
     #                                         best_dest_amount, taker_price_threshold=taker_price_threshold,
@@ -74,7 +74,6 @@ def set_order(handler):
 
 
 def report_closed_orders(tribot: Bot, order_manager: ActionOrderManager, closed_orders: List[ActionOrder]):
-
     tribot.log(tribot.LOG_INFO, "Reporting closed orders....")
 
     recovery_report = list()
@@ -175,6 +174,29 @@ def report_closed_orders(tribot: Bot, order_manager: ActionOrderManager, closed_
                 deal_data=report_data)
 
             tribot.sqla_reporter.session.add(deal_report)
+
+            if order.start_amount - order.filled_start_amount > 0:
+                tribot.log(bot.LOG_INFO, "... preparing remainings record")
+                remaining = Remainings(
+                    exchange=tribot.exchange.exchange_id,
+                    account="account1",
+                    timestamp=datetime.now(tz=pytz.timezone("UTC")),
+                    action="ADD",
+                    currency=order.start_currency,
+                    amount_delta=order.start_amount - order.filled_start_amount,
+                    target_currency=order.dest_currency,
+                    target_amount_delta=core.convert_currency(start_currency=order.start_currency,
+                                                              start_amount=order.start_amount-order.filled_start_amount,
+                                                              dest_currency=order.dest_currency,
+                                                              symbol=order.symbol,
+                                                              price=order.price),
+                    # target_amount_delta=order.dest_amount - order.filled_dest_amount,
+                    symbol=order.symbol
+                )
+
+                tribot.log(bot.LOG_INFO, remaining)
+                tribot.sqla_reporter.session.add(remaining)
+
             try:
                 tribot.sqla_reporter.session.commit()
                 tribot.log(tribot.LOG_INFO, "... committed")
@@ -190,7 +212,6 @@ def report_closed_orders(tribot: Bot, order_manager: ActionOrderManager, closed_
             tribot.log(tribot.LOG_INFO, "... preparing orders report")
             i = 0
             for trade_order in order.orders_history:
-
                 tribot.sqla_reporter.session.add(
                     TradeOrderReport.from_trade_order(trade_order,
                                                       timestamp=datetime.now(tz=pytz.timezone("UTC")),
@@ -210,7 +231,6 @@ def report_closed_orders(tribot: Bot, order_manager: ActionOrderManager, closed_
 
                 tribot.sqla_reporter.session.rollback()
                 tribot.log(tribot.LOG_ERROR, "SQL session rolled back")
-
 
 
 def worker():
@@ -258,7 +278,6 @@ bot.log(bot.LOG_INFO, "Config filename: {}".format(bot.config_filename))
 bot.log(bot.LOG_INFO, "Exchange ID:" + bot.exchange_id)
 bot.log(bot.LOG_INFO, "OM sleep time: {}".format(bot.om_proceed_sleep))
 
-
 # init the remote reporting
 try:
     bot.init_remote_reports()
@@ -294,7 +313,7 @@ rest_server.service_worker = worker
 rest_server.routes = {
     r'^/orders': {'GET': rest_server.get_records, 'media_type': 'application/json'},
     r'^/order/': {'GET': get_order, 'PUT': set_order, 'DELETE': rest_server.delete_record,
-                   'media_type': 'application/json'}}
+                  'media_type': 'application/json'}}
 
 rest_server.poll_interval = 0.01
 rest_server.port = int(bot.port)
