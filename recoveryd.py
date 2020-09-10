@@ -235,7 +235,20 @@ def report_closed_orders(tribot: Bot, order_manager: ActionOrderManager, closed_
 
 def worker():
     if len(om.get_open_orders()) > 0:
+
         om.proceed_orders()
+
+        # this code is valid for offline only! Do not use for online force-closing ActionOrder!!!!
+        if bot.offline and bot.force_cancel > 0:
+
+            open_orders = om.get_open_orders()
+            for order in open_orders:
+                if order.state == "taker" and (order.filled_dest_amount / order.dest_amount > bot.force_cancel):
+                    bot.log(bot.LOG_INFO, f"Order {order.id} was forced to close")
+                    order.close_order()
+                    if order not in om._last_update_closed_orders:
+                        om._last_update_closed_orders.append(order)
+
         bot.log(bot.LOG_INFO, "Sleeping after orders proceeding for {}s...".format(bot.om_proceed_sleep))
 
         time.sleep(bot.om_proceed_sleep)  # workaround
@@ -251,6 +264,7 @@ def worker():
 
 Bot.recovery_server = ""
 bot = Bot("", "server.log")
+bot.force_cancel = 0.0
 
 bot.maker_stop_loss = dict()
 """
@@ -276,6 +290,9 @@ bot.set_from_cli(sys.argv[1:])
 bot.log(bot.LOG_INFO, "Starting server...")
 bot.log(bot.LOG_INFO, "Config filename: {}".format(bot.config_filename))
 bot.log(bot.LOG_INFO, "Exchange ID:" + bot.exchange_id)
+if bot.offline:
+    bot.log(bot.LOG_INFO, "Offline Mode")
+
 bot.log(bot.LOG_INFO, "OM sleep time: {}".format(bot.om_proceed_sleep))
 
 # init the remote reporting
@@ -298,6 +315,9 @@ else:
     bot.exchange.init_async_exchange()
 
 bot.load_markets()
+
+bot.load_balance()
+bot.log(bot.LOG_INFO, "Init Balance: {}".format(bot.balance))
 
 ActionOrderManager.log = bot.log  # override order manager logger to the bot logger
 ActionOrderManager.LOG_INFO = bot.LOG_INFO

@@ -1,0 +1,33 @@
+---
+server_id: ARB2-PROD-TEST
+script_id: triarb_production
+exchange_id: binance
+offline: true
+
+commission: 0.00075
+api_key:
+  apiKey: 'test'
+  secret: 'test'
+
+sqla:
+  enabled: true
+  connection_string: postgres://postgres:12345@localhost:5432/ztom
+
+force_cancel : 0.9
+
+taker_price_threshold: -0.01
+order_update_total_requests: 10
+order_update_requests_for_time_out: 12
+order_update_time_out: 1
+max_trades_updates: 4
+max_oder_books_fetch_attempts: 10
+max_order_update_attempts: 5
+request_sleep: 0.05
+om_proceed_sleep: 0.01
+maker_stop_loss:
+  maker_price_threshold: -0.005
+  maker_order_max_updates: 5
+  force_taker_updates: 5
+  taker_price_threshold: -0.01
+  taker_order_max_updates: 6
+  threshold_check_after_updates: 5
