@@ -316,9 +316,6 @@ else:
 
 bot.load_markets()
 
-bot.load_balance()
-bot.log(bot.LOG_INFO, "Init Balance: {}".format(bot.balance))
-
 ActionOrderManager.log = bot.log  # override order manager logger to the bot logger
 ActionOrderManager.LOG_INFO = bot.LOG_INFO
 ActionOrderManager.LOG_ERROR = bot.LOG_ERROR
